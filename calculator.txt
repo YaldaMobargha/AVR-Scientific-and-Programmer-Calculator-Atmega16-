@@ -1,0 +1,758 @@
+#include <mega16.h>
+#include <delay.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <alcd.h>
+#include <math.h>
+//rows and columns for keypads
+#define R11 PORTC.0
+#define R12 PORTC.1
+#define R13 PORTC.2
+#define R14 PORTC.3
+
+#define C11 PINC.4
+#define C12 PINC.5
+#define C13 PINC.6
+#define C14 PINC.7
+
+#define R21 PORTD.0
+#define R22 PORTD.1
+#define R23 PORTD.2
+#define R24 PORTD.3
+
+#define C21 PIND.4
+#define C22 PIND.5
+#define C23 PIND.6
+#define C24 PIND.7
+
+void main(void)
+{
+//Declare variables here
+char array [16]={0};
+char array_memory [16]={0};
+char array_hex [16]={0};
+char array_answer[16]={0};
+char number=16;
+float num1=0;
+float num2=0;
+float answer=0;
+long int decimal;
+int binary;
+char MR1=0;
+char MR2=0;
+long int int_num1=0;
+long int int_num2=0;
+long int int_answer=0;
+float pi=3.1415926536;
+char check_num=0;
+char set_row=1;
+char wr_prg=0;
+char op=0;
+char deg=0;
+char prg=0;
+char m_check=0;
+char second_number=0;
+char first_number=0;
+float memory=0;
+char recall=0;
+char k=0;
+char j=0;
+//
+DDRA=0xFF;
+DDRB=0xFF;
+DDRC=0x0F;
+PORTC=0xFF;
+DDRD=0x0F;
+PORTD=0xFF;
+//lcd initialize
+lcd_init (16);
+lcd_clear ();
+lcd_gotoxy (13,0);
+lcd_puts ("RAD"); //radian mode
+lcd_gotoxy (0,0);
+while (1)
+ {
+    //////////////////////////////////////////////////////// keypad1
+    R11 = 0; R12 = 1; R13 = 1; R14 = 1;
+    delay_us(50);
+    if (C11 == 0){while (C11 == 0){} number = 7;}
+    if (C12 == 0){while (C12 == 0){} number = 8;}
+    if (C13 == 0){while (C13 == 0){} number = 9;}
+    if (C14 == 0){while (C14 == 0){} number = 10;}//div
+
+    R11 = 1; R12 = 0; R13 = 1; R14 = 1;
+    delay_us(50);
+    if (C11 == 0){while (C11 == 0){} number = 4;}
+    if (C12 == 0){while (C12 == 0){} number = 5;}
+    if (C13 == 0){while (C13 == 0){} number = 6;}
+    if (C14 == 0){while (C14 == 0){} number = 11;}//mul
+
+    R11 = 1; R12 = 1; R13 = 0; R14 = 1;
+    delay_us(50);
+    if (C11 == 0){while (C11 == 0){} number = 1;}
+    if (C12 == 0){while (C12 == 0){} number = 2;}
+    if (C13 == 0){while (C13 == 0){} number = 3;}
+    if (C14 == 0){while (C14 == 0){} number = 12;}//sub
+
+    R11 = 1; R12 = 1; R13 = 1; R14 = 0;
+    delay_us(50);
+    if (C11 == 0){while (C11 == 0){} number = 13;}//clear
+    if (C12 == 0){while (C12 == 0){} number = 0;}
+    if (C13 == 0){while (C13 == 0){} number = 14;}//equ
+    if (C14 == 0){while (C14 == 0){} number = 15;}//sum
+
+    //////////////////////////////////////////////////////// keypad2
+
+    R21 = 0; R22 = 1; R23 = 1; R24 = 1;
+    delay_us(50);
+    if (C21 == 0){while (C21 == 0){} number = 17;}//7 _sin
+    if (C22 == 0){while (C22 == 0){} number = 18;}//8 _cos
+    if (C23 == 0){while (C23 == 0){} number = 19;}//9 _tan
+    if (C24 == 0){while (C24 == 0){} number = 20;}//div_cot
+
+    R21 = 1; R22 = 0; R23 = 1; R24 = 1;
+    delay_us(50);
+    if (C21 == 0){while (C21 == 0){} number = 21;}//4_change mode d-->R
+    if (C22 == 0){while (C22 == 0){} number = 22;}//5_pi
+    if (C23 == 0){while (C23 == 0){} number = 23;}//6_exp
+    if (C24 == 0){while (C24 == 0){} number = 24;}//mul_sqrt
+
+    R21 = 1; R22 = 1; R23 = 0; R24 = 1;
+    delay_us(50);
+    if (C21 == 0){while (C21 == 0){} number = 25;}//1_hex
+    if (C22 == 0){while (C22 == 0){} number = 26;}//2_and
+    if (C23 == 0){while (C23 == 0){} number = 27;}//3_or
+    if (C24 == 0){while (C24 == 0){} number = 28;}//sub_xor
+
+    R21 = 1; R22 = 1; R23 = 1; R24 = 0;
+    delay_us(50);
+    if (C21 == 0){while (C21 == 0){} number = 29;}//on_memory
+    if (C22 == 0){while (C22 == 0){} number = 30;}//0_memory recall
+    if (C23 == 0){while (C23 == 0){} number = 31;}//equ_<<
+    if (C24 == 0){while (C24 == 0){} number = 32;}//sum_>>
+
+    //////////////////////////////////////////////////////
+    //get number for operator that need one operand
+    if ((number<10 && op>=17 &&  op<25) )
+    {
+        sprintf (array,"%d",number);
+        lcd_puts (array);
+        num1=num1*10+number;
+        number=16;
+        first_number=1;
+    }
+
+    //get first number from keypad or memory for operators that need two operands
+    if ((((number<10 && op<17 ) || number==33) && check_num==0) ||( MR1==1 && first_number==0) )
+    {
+        if(number!=16 && number!=30)//get first number from keypad
+        {
+            if (set_row==1 && prg==0) //set location for writing first number
+            {
+                lcd_gotoxy(0,0);
+                set_row=0;
+            }
+
+            if (set_row==1 && prg==1)//set location for programmer title
+            {
+                lcd_gotoxy(4,0);
+                set_row=0;
+            }
+
+            if (number==33)//put "pi" in first number
+            {
+                num1=pi;
+            }
+
+            else //print first number
+            {
+                sprintf (array,"%d",number);
+                lcd_puts (array);
+                num1=num1*10+number;
+                decimal=num1;
+                wr_prg=1;
+            }
+        }
+
+        if(MR1==1 && prg==0)//get first number from memory
+        {
+            num1=memory;
+            decimal=memory;
+            sprintf (array_memory,"%f",num1);
+            lcd_puts(array_memory);
+            MR1=0;
+            recall=0;
+        }
+        first_number=1;
+        number=16;
+    }
+
+    if (prg==1 && wr_prg==1 && recall==0)//Convert decimal numbers to binary and hexadecimal (from keypad)
+    {
+        lcd_gotoxy(4,1);
+        sprintf (array_hex,"%lX",decimal);
+        lcd_puts (array_hex);
+        wr_prg=0;
+        lcd_gotoxy (4,2);
+        for (k=0;k<8;k++)
+        {
+            binary=array_hex [k];
+            switch (binary)
+            {
+                case '0':
+                lcd_puts ("0000");
+                break;
+                case '1':
+                lcd_puts ("0001");
+                break;
+                case '2':
+                lcd_puts ("0010");
+                break;
+                case '3':
+                lcd_puts ("0011");
+                break;
+                case '4':
+                lcd_puts ("0100");
+                break;
+                case '5':
+                lcd_puts ("0101");
+                break;
+                case '6':
+                lcd_puts ("0110");
+                break;
+                case '7':
+                lcd_puts ("0111");
+                break;
+                case '8':
+                lcd_puts ("1000");
+                break;
+                case '9':
+                lcd_puts ("1001");
+                break;
+                case 'A':
+                lcd_puts ("1010");
+                break;
+                case 'B':
+                lcd_puts ("1011");
+                break;
+                case 'C':
+                lcd_puts ("1100");
+                break;
+                case 'D':
+                lcd_puts ("1101");
+                break;
+                case 'E':
+                lcd_puts ("1110");
+                break;
+                case 'F':
+                lcd_puts ("1111");
+                break;
+            }
+        }
+        j++;
+        lcd_gotoxy(4+j,0);
+    }
+    if (prg==1 && recall==1)//Convert decimal numbers to binary and hexadecimal (from memory)
+    {
+        int_num1=memory;
+        lcd_gotoxy(4,0);
+        sprintf (array,"%ld",int_num1);
+        lcd_puts (array);
+        lcd_gotoxy(4,1);
+        sprintf (array_hex,"%lX",int_num1);
+        lcd_puts (array_hex);
+        wr_prg=0;
+        lcd_gotoxy (4,2);
+        for (k=0;k<8;k++)
+        {
+            binary=array_hex [k];
+            switch (binary)
+            {
+                case '0':
+                lcd_puts ("0000");
+                break;
+                case '1':
+                lcd_puts ("0001");
+                break;
+                case '2':
+                lcd_puts ("0010");
+                break;
+                case '3':
+                lcd_puts ("0011");
+                break;
+                case '4':
+                lcd_puts ("0100");
+                break;
+                case '5':
+                lcd_puts ("0101");
+                break;
+                case '6':
+                lcd_puts ("0110");
+                break;
+                case '7':
+                lcd_puts ("0111");
+                break;
+                case '8':
+                lcd_puts ("1000");
+                break;
+                case '9':
+                lcd_puts ("1001");
+                break;
+                case 'A':
+                lcd_puts ("1010");
+                break;
+                case 'B':
+                lcd_puts ("1011");
+                break;
+                case 'C':
+                lcd_puts ("1100");
+                break;
+                case 'D':
+                lcd_puts ("1101");
+                break;
+                case 'E':
+                lcd_puts ("1110");
+                break;
+                case 'F':
+                lcd_puts ("1111");
+                break;
+            }
+        }
+        j++;
+        lcd_gotoxy(4+j,0);
+        recall=0;
+    }
+
+    //get second number for operator that need one operand
+    if ((( number<10 || (number==33)) && check_num==1 )|| MR2==1 )//second number
+    {
+        if(number!=16)//get second number from keypad
+        {
+            if (number==33)//put "pi" in second number
+            {
+                num2=pi;
+            }
+            else//print second number
+            {
+                sprintf (array,"%d",number);
+                lcd_puts (array);
+                num2=num2*10+number;
+            }
+        }
+        if(MR2==1)//get second number from memory
+        {
+            num2=memory;
+            binary=num2;
+            sprintf (array_memory,"%f",num2);
+            lcd_puts (array_memory);
+            MR2=0;
+            recall=0;
+        }
+        number=16;
+        second_number=1;
+    }
+
+    switch (number)//print operators
+    {
+      case 15:
+       lcd_gotoxy(0,1);
+       lcd_putchar ('+');
+       check_num=1;
+       lcd_gotoxy(0,2);
+       op=15;
+       number=16;
+       break;
+      case 12 :
+       lcd_gotoxy(0,1);
+       lcd_putchar ('-');
+       check_num=1;
+       lcd_gotoxy(0,2);
+       op=12;
+       number=16;
+       break;
+      case 11 :
+       lcd_gotoxy(0,1);
+       lcd_putchar ('*');
+       check_num=1;
+       lcd_gotoxy(0,2);
+       op=11;
+       number=16;
+       break;
+      case 10:
+       lcd_gotoxy(0,1);
+       lcd_putchar ('/');
+       check_num=1;
+       lcd_gotoxy(0,2);
+       op=10;
+       number=16;
+       break;
+      case 17 :
+       lcd_gotoxy (0,1);
+       lcd_puts ("sin ");
+       op=17;
+       number=16;
+       break;
+      case 18:
+       lcd_gotoxy (0,1);
+       lcd_puts ("cos ");
+       op=18;
+       number=16;
+       break;
+      case 19 :
+       lcd_gotoxy (0,1);
+       lcd_puts ("tan ");
+       op=19;
+       number=16;
+       break;
+      case 20:
+       lcd_gotoxy (0,1);
+       lcd_puts ("cot ");
+       op=20;
+       number=16;
+       break;
+      case 21:
+       if (deg==0)
+       {
+           lcd_gotoxy (13,0);
+           lcd_puts ("DEG");
+           deg=1;
+       }
+       else
+       {
+           lcd_gotoxy (13,0);
+           lcd_puts ("RAD");
+           deg=0;
+       }
+       number=16;
+       break;
+      case 22 :
+       lcd_putchar (247);
+       number=33;
+       break;
+      case 23 :
+       lcd_gotoxy(0,1);
+       lcd_puts ("exp");
+       op=23;
+       number=16;
+       break;
+      case 24 :
+       lcd_gotoxy(0,1);
+       lcd_putchar (232);
+       op=24;
+       number=16;
+       break;
+       case 25:
+       prg=1;
+       lcd_gotoxy(3,0);
+       lcd_puts ("PROGRAMMER   ");
+       delay_ms (500);
+       lcd_clear ();
+       lcd_gotoxy(0,0);
+       lcd_puts ("DEC:");
+       lcd_gotoxy(0,1);
+       lcd_puts ("HEX:");
+       lcd_gotoxy(0,2);
+       lcd_puts ("BIN:");
+       op=0;
+       number=16;
+       break;
+       case 26:
+       lcd_gotoxy (13,0);
+       lcd_puts ("   ");
+       lcd_gotoxy(0,1);
+       lcd_puts ("AND");
+       check_num=1;
+       lcd_gotoxy(0,2);
+       op=26;
+       number=16;
+       break;
+      case 27:
+       lcd_gotoxy (13,0);
+       lcd_puts ("   ");
+       lcd_gotoxy(0,1);
+       lcd_puts ("OR");
+       check_num=1;
+       lcd_gotoxy(0,2);
+       op=27;
+       number=16;
+       break;
+      case 28:
+       lcd_gotoxy (13,0);
+       lcd_puts ("   ");
+       lcd_gotoxy(0,1);
+       lcd_puts ("XOR");
+       check_num=1;
+       lcd_gotoxy(0,2);
+       op=28;
+       number=16;
+       break;
+      case 31:
+       lcd_gotoxy (13,0);
+       lcd_puts ("   ");
+       lcd_gotoxy(0,1);
+       lcd_puts ("<<");
+       check_num=1;
+       lcd_gotoxy(0,2);
+       op=31;
+       number=16;
+       break;
+      case 32:
+       lcd_gotoxy (13,0);
+       lcd_puts ("   ");
+       lcd_gotoxy(0,1);
+       lcd_puts (">>");
+       check_num=1;
+       lcd_gotoxy(0,2);
+       op=32;
+       number=16;
+       break;
+      case 29:
+       memory=0;
+       if(m_check>=25)
+       {
+            answer=int_answer;
+            memory=answer;
+            m_check=0;
+       }
+       if(m_check<25)
+       {
+            memory=answer;
+            m_check=0;
+       }
+       number=16;
+       break;
+      case 30:
+       recall=1;
+       if(first_number==0)
+       {
+            MR1=1;
+            num1=0;
+       }
+       if(second_number==0 && first_number==1)
+       {
+         MR2=1;
+         num2=0;
+       }
+       number=16;
+       break;
+
+    }
+
+    if (number==14) // '='
+    {
+       switch (op) //calculation
+       {
+           case 10: //div
+             answer=num1/num2;
+             sprintf (array_answer,"%f",answer);
+             lcd_gotoxy(0,3);
+             lcd_puts(array_answer);
+             op=0;
+             m_check=10;
+             break;
+
+           case 11: //mul
+             answer=num1*num2;
+             sprintf (array_answer,"%f",answer);
+             lcd_gotoxy(0,3);
+             lcd_puts(array_answer);
+             op=0;
+             m_check=11;
+             break;
+
+           case 12: //sub
+             answer=num1-num2;
+             sprintf (array_answer,"%f",answer);
+             lcd_gotoxy(0,3);
+             lcd_puts(array_answer);
+             op=0;
+             m_check=12;
+             break;
+
+           case 15: //sum
+
+             answer=num1+num2;
+             sprintf (array_answer,"%f",answer);
+             lcd_gotoxy(0,3);
+             lcd_puts(array_answer);
+             op=0;
+             m_check=15;
+             break;
+
+           case 17: //sin
+             if (deg==0)
+             {
+                 answer=sin(num1);
+             }
+             else
+             {
+                 num1=(num1*pi)/180;
+                 answer=sin(num1);
+             }
+             sprintf (array_answer,"%f",answer);
+             lcd_gotoxy(0,2);
+             lcd_puts(array_answer);
+             op=0;
+             m_check=17;
+             break;
+
+           case 18: //cos
+             if (deg==0)
+             {
+                 answer=cos(num1);
+             }
+             else
+             {
+                 num1=(num1*pi)/180;
+                 answer=cos(num1);
+             }
+             sprintf (array_answer,"%f",answer);
+             lcd_gotoxy(0,2);
+             lcd_puts(array_answer);
+             op=0;
+             m_check=18;
+             break;
+
+           case 19: //tan
+             if (deg==0)
+             {
+                 answer=tan(num1);
+             }
+             else
+             {
+                 num1=(num1*pi)/180;
+                 answer=tan(num1);
+             }
+             sprintf (array_answer,"%f",answer);
+             lcd_gotoxy(0,2);
+             lcd_puts(array_answer);
+             op=0;
+             m_check=19;
+             break;
+
+           case 20: //cot
+             if (deg==0)
+             {
+                 answer=1/tan(num1);
+             }
+             else
+             {
+                 num1=(num1*pi)/180;
+                 answer=1/tan(num1);
+             }
+             sprintf (array_answer,"%f",answer);
+             lcd_gotoxy(0,2);
+             lcd_puts(array_answer);
+             op=0;
+             m_check=20;
+             break;
+
+           case 23: //exp
+             answer=exp(num1);
+             sprintf (array_answer,"%f",answer);
+             lcd_gotoxy(0,2);
+             lcd_puts(array_answer);
+             op=0;
+             m_check=23;
+             break;
+
+           case 24: //sqrt
+             answer=sqrt(num1);
+             sprintf (array_answer,"%f",answer);
+             lcd_gotoxy(0,2);
+             lcd_puts(array_answer);
+             m_check=24;
+             op=0;
+             break;
+
+           case 26: //and
+             int_num1=num1;
+             int_num2=num2;
+             int_answer=int_num1&int_num2;
+             sprintf (array_answer,"%ld",int_answer);
+             lcd_gotoxy(0,3);
+             lcd_puts(array_answer);
+             op=0;
+             m_check=26;
+             break;
+
+           case 27: //or
+             int_num1=num1;
+             int_num2=num2;
+             int_answer=int_num1|int_num2;
+             sprintf (array_answer,"%ld",int_answer);
+             lcd_gotoxy(0,3);
+             lcd_puts(array_answer);
+             op=0;
+             m_check=27;
+             break;
+
+           case 28: //xor
+             int_num1=num1;
+             int_num2=num2;
+             int_answer=int_num1^int_num2;
+             sprintf (array_answer,"%ld",int_answer);
+             lcd_gotoxy(0,3);
+             lcd_puts(array_answer);
+             op=0;
+             m_check=28;
+             break;
+
+           case 31: //<<
+             int_num1=num1;
+             int_num2=num2;
+             int_answer=int_num1<<int_num2;
+             sprintf (array_answer,"%ld",int_answer);
+             lcd_gotoxy(0,3);
+             lcd_puts(array_answer);
+             op=0;
+             m_check=31;
+             break;
+
+           case 32: //>>
+             int_num1=num1;
+             int_num2=num2;
+             int_answer=int_num1>>int_num2;
+             sprintf (array_answer,"%ld",int_answer);
+             lcd_gotoxy(0,3);
+             lcd_puts(array_answer);
+             op=0;
+             m_check=32;
+             break;
+       }
+       number=16;
+    }
+
+    if (number==13)//clear
+    {
+        lcd_clear ();
+        op=0;
+        num1=0;
+        num2=0;
+        answer=0;
+        decimal=0;
+        binary=0;
+        int_num1=0;
+        int_num2=0;
+        int_answer=0;
+        check_num=0;
+        k=0;
+        set_row=1;
+        wr_prg=0;
+        j=0;
+        op=0;
+        deg=0;
+        prg=0;
+        number=16;
+        lcd_gotoxy (13,0);
+        lcd_puts ("RAD");
+        lcd_gotoxy (0,0);
+        MR1=0;
+        MR2=0;
+        m_check=0;
+        second_number=0 ;
+        first_number=0 ;
+        recall=0;
+    }
+ }
+}
